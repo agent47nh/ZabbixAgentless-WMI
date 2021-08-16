@@ -6,7 +6,6 @@ to Zabbix.
 
 
 __author__ = "Naimul Hasan"
-__copyright__ = "Copyright 2021, An implementation of Zabbix Agentless host for Windows."
 __credits__ = ["Naimul Hasan"]
 __license__ = "AGPLv3"
 __version__ = "Alpha-1.0.0"
