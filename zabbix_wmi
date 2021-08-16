@@ -1,0 +1,397 @@
+#!/usr/bin/env python3
+"""
+Windows WMI, convert response to a format that Zabbix understands and send it
+to Zabbix.
+"""
+
+
+__author__ = "Naimul Hasan"
+__copyright__ = "Copyright 2021, An implementation of Zabbix Agentless host for Windows."
+__credits__ = ["Naimul Hasan"]
+__license__ = "AGPLv3"
+__version__ = "Alpha-1.0.0"
+__maintainer__ = "Naimul Hasan"
+__status__ = "Development"
+
+
+import sys
+import argparse
+import logging
+import logging.handlers
+import os
+import subprocess
+import json
+import impacket
+from impacket.dcerpc.v5.dtypes import NULL
+from impacket.dcerpc.v5.dcom import wmi
+from impacket.dcerpc.v5.dcomrt import DCOMConnection
+from impacket.dcerpc.v5.rpcrt import RPC_C_AUTHN_LEVEL_PKT_PRIVACY,\
+RPC_C_AUTHN_LEVEL_PKT_INTEGRITY,\
+RPC_C_AUTHN_LEVEL_NONE
+
+ACTION_CHOICES = ['single', 'multiple', 'json', 'discover', 'discover_n_multiple']
+
+parse_args = argparse.ArgumentParser(add_help=True,
+        description='An implementation of Zabbix Agentless host for Windows.')
+parse_args.add_argument('-v', '--version', action='version', version='Version: Alpha-1.0.0')
+parse_args.add_argument('-c', '--wmi-class', metavar='Win32_LogicalDisk', help='WMI class',
+        required=True)
+parse_args.add_argument('-lp', '--log-path', metavar='/tmp/zabbix_wmi.log',
+        default='/tmp/zabbix_wmi.log', help='Log file path (default: %(default)s')
+parse_args.add_argument('-t', '--target-host', metavar='192.168.75.34', help='Target host',
+        required=True)
+parse_args.add_argument('-a', '--action', choices=ACTION_CHOICES, metavar='single',
+        default='single', help='Action to perform '\
+                f' Choices: {ACTION_CHOICES} - (default: %(default)s)')
+parse_args.add_argument('-n', '--namespace', metavar='//./root/cimv2',
+        default='//./root/cimv2', help='WMI Namespace (default: %(default)s)')
+parse_args.add_argument('-kf', '--key-field', metavar='Name',
+        default='Name', help='Key Fields to query, for multiple fields,'\
+                ' separate by comma (default: %(default)s)')
+parse_args.add_argument('-qf', '--query-fields', metavar='Name',
+        help='Fields to query, for multiple fields, separate by comma',
+        required=True)
+parse_args.add_argument('-f', '--filter', metavar='Name<>FooBar LIKE %10',
+        default='', help='WQL Style WHERE clause (default: %(default)s)')
+parse_args.add_argument('-i', '--item', metavar='C:', default='',
+        help='Item to query about. (default: %(default)s)')
+
+
+#### Zabbix Parameters
+
+group_args = parse_args.add_argument_group('Zabbix related parameters')
+group_args.add_argument('-zsrv', '--zabbix-server', metavar='127.0.0.1',
+        default='127.0.0.1', help='Zabbix server address. (default: %(default)s)')
+group_args.add_argument('-zsnd', '--zabbix-sender', metavar='/usr/bin/zabbix_sender',
+        default='/usr/bin/zabbix_sender', help='Zabbix Sender Path. (default: %(default)s)')
+group_args.add_argument('-zhost', '--zabbix-hostname', metavar='Windows 2019 Host',
+        help='Registered name of Host in Zabbix. Required when using multiple or'\
+                ' discover_n_multiple action.')
+
+
+#### Windows WMI Parameters
+
+AUTH_CHOICES = ['userpass', 'file']
+group_args = parse_args.add_argument_group('Windows WMI Authentication Parameters')
+group_args.add_argument('-atype', '--auth-type', choices=AUTH_CHOICES, metavar='userpass',
+        default='userpass', help='Select an authentication method.'\
+                f' Choices: {AUTH_CHOICES} - (default: %(default)s)',
+                required=True)
+group_args.add_argument('-afile', '--credentials-file-path', type=argparse.FileType('r'),
+        metavar='/etc/zabbix/wmi.cnf', help='Credentials file path. Required'\
+                'only if auth type file is selected.')
+group_args.add_argument('-dc-ip', '--domain-controller-ip', metavar='192.168.56.1',
+        help='IP Address of the domain controller. Use only if it was omitted in the'\
+                ' domain part in target parameter.')
+
+RPC_AUTH_LEVEL = ['default', 'integrity', 'privacy', 'none']
+
+group_args.add_argument('-rpc-auth', '--rpc-authentication-level', choices=RPC_AUTH_LEVEL,
+        nargs='?',metavar='default', default='default',
+        help='WMI RPC Authentication level. (default: %(default)s)')
+group_args.add_argument('-user', '--wmi-username', metavar='WMIUser1',
+        help='Enter a Username login with. Required if \'userpass\' method is selected.')
+group_args.add_argument('-pass', '--wmi-password', metavar='*********',
+        help='Enter a Password to login with. Required if \'userpass\' method is selected.')
+group_args.add_argument('-dom', '--domain', metavar='MyNTDoamin',
+        help='Enter the Windows Domain. Required if \'userpass\' method is selected.')
+
+arguments = parse_args.parse_args()
+
+########################################################################################
+
+LOG_FILENAME=arguments.log_path
+LOGGER_FORMAT = logging.Formatter('%(name)s - %(asctime)s: [%(levelname)s] %(message)s')
+
+########################################################################################
+
+zbxwmi_logger = logging.getLogger('Zabbix WMI Log')
+zbxwmi_logger.setLevel(logging.INFO)
+zbxwmi_handler = logging.handlers.RotatingFileHandler(LOG_FILENAME,
+        maxBytes=(1024**2)*10, backupCount=5)
+zbxwmi_handler.setFormatter(LOGGER_FORMAT)
+zbxwmi_logger.addHandler(zbxwmi_handler)
+
+zbxwmi_logger.info('###### Session begins ###### ')
+zbxwmi_logger.debug('Argument parsing is now complete.')
+
+########################################################################################
+
+
+def build_query() -> str:
+    """
+    Build a WMI query based on the user input and return a
+    valid WMI query as a string.
+    """
+    zbxwmi_logger.info('Building query.')
+    if arguments.query_fields.find(','):
+        field_list = arguments.query_fields.split(',')
+    else:
+        field_list = [arguments.query_fields]
+
+    zbxwmi_logger.debug('Checking single_action_condition_fail...')
+
+    single_action_condition_fail = bool(
+            arguments.action == 'single' and len(field_list) != 1
+            )
+    if single_action_condition_fail:
+        zbxwmi_logger.error("For action mode '%(action)s', only one query field is required.",
+                {'action':arguments.action})
+        print(f"Query field error. Check log {LOG_FILENAME} for more details.")
+        sys.exit(1)
+
+    zbxwmi_logger.debug('Passed single_action_condition_fail check.')
+
+    key_field = arguments.key_field
+    key_field_check_fail = key_field.find(',') == 1
+
+    zbxwmi_logger.debug('Checking key_field_check_fail...')
+
+    if key_field_check_fail:
+        print(f'Key field cannot have multiple values. Check log {LOG_FILENAME} for more details.')
+        zbxwmi_logger.error('These \'%(key_field)s\' key fields provided as input.'\
+                ' Please make sure the key field is a single value.', {'key_field': key_field})
+        sys.exit(2)
+
+    zbxwmi_logger.debug('Passed key_fields_check_fail check')
+    zbxwmi_logger.info('Building query now...')
+
+    query_body = "SELECT "
+    query_field_has_name = bool(arguments.query_fields.lower().find('name') >= 0)
+
+    if key_field.lower() == 'name' or query_field_has_name:
+        query_body += "Name, "
+
+    all_query_fields = arguments.query_fields.split(',')
+    for this_query_field in all_query_fields:
+        if this_query_field.lower() == 'name' and query_field_has_name:
+            continue
+        query_body += f"{this_query_field}, "
+
+    if query_body[-2:] == ', ':
+        query_body = query_body[:-2]
+
+    query_body += f" FROM {arguments.wmi_class}"
+
+
+    if arguments.filter or arguments.item:
+        query_body += " WHERE "
+        where_clause = []
+
+        if arguments.filter:
+            where_clause.append(arguments.filter)
+
+        if arguments.item:
+            where_clause.append(f"{key_field} = '{arguments.item}'")
+
+        query_body += ' AND '.join(where_clause)
+
+    zbxwmi_logger.info('Building query is now completed.')
+    zbxwmi_logger.debug('Query: %(query)s', {'query': query_body})
+
+    return query_body
+
+
+def get_credentials() -> dict:
+    """
+    Parse credentials and return them
+    """
+    zbxwmi_logger.info('WMI Authentication method: %(auth_type)s',
+            {'auth_type': arguments.auth_type})
+    if arguments.auth_type == 'file':
+        if not arguments.credentials_file_path:
+            zbxwmi_logger.error('User did not specify the credentials file path. Credentials'\
+                    ' file path can be specified using the '\
+                    'arguments \'-afile\' or \'--credentials-file-path\'')
+            print("Please specify a file path using the parameter '-afile'")
+            sys.exit(3)
+        zbxwmi_logger.error('Authentication file: %(file_path)s', {
+            'file_path': 'arguments.credentials_file_path'
+            })
+
+        zbxwmi_logger.info("Getting credentials from file.")
+        credentials = {
+                'wmi_username': arguments.credentials_file_path.readline().strip(),
+                'wmi_password': arguments.credentials_file_path.readline().strip(),
+                'wmi_domain': arguments.credentials_file_path.readline().strip()
+                }
+    else:
+        user_pass_dom_check = arguments.wmi_username and arguments.wmi_password and arguments.domain
+
+        if not user_pass_dom_check:
+            zbxwmi_logger.error('User did not specify one of the following'\
+                    ' WMI Username, Password or Domain.')
+            print("Please specify the username, password or the domain correctly.")
+            sys.exit(4)
+
+        zbxwmi_logger.info("Getting credentials from arguments.")
+        credentials = {
+                'wmi_username': arguments.wmi_username,
+                'wmi_password': arguments.wmi_password,
+                'wmi_domain': arguments.domain
+                }
+
+    zbxwmi_logger.info("Credentials retrieved successfully.")
+    return credentials
+
+
+def wmi_query(query) -> list:
+    """
+    Query a WMI instance using the query provided in the parameter.
+    Return the response as a JSON object.
+    """
+
+    credentials = get_credentials()
+    zbxwmi_logger.info("Initializing connection with WMI...")
+    zbxwmi_logger.debug("Setting DCOM parameters...")
+    try:
+        dcom_conn = DCOMConnection(
+                arguments.target_host, credentials.get('wmi_username'),
+                credentials.get('wmi_password'), credentials.get('wmi_domain'),
+                '', '', '', oxidResolver=True, doKerberos=False,
+                kdcHost=arguments.domain_controller_ip
+                )
+    except impacket.dcerpc.v5.rpcrt.DCERPCException as this_except:
+        zbxwmi_logger.error("WMI Error: %(error)s", {'error': this_except})
+        zbxwmi_logger.error("Could not log into to the WMI system. Exiting...")
+        print(f"WMI Error: {this_except}")
+        sys.exit(5)
+    zbxwmi_logger.debug("DCOM parameters set.")
+    zbxwmi_logger.debug("Setting DCOM interface parameters...")
+    dcom_interface = dcom_conn.CoCreateInstanceEx(wmi.CLSID_WbemLevel1Login,
+            wmi.IID_IWbemLevel1Login)
+    iwebem_level_one_login = wmi.IWbemLevel1Login(dcom_interface)
+    iwebem_services = iwebem_level_one_login.NTLMLogin(arguments.namespace, NULL, NULL)
+    zbxwmi_logger.debug("DCOM interface parameters set.")
+
+    zbxwmi_logger.info("Setting RPC Authentication level to %(auth_level)s",
+            {'auth_level': 'default' if not arguments.rpc_authentication_level else \
+            arguments.rpc_authentication_level})
+    if arguments.rpc_authentication_level == 'privacy':
+        iwebem_services.get_dce_rpc().set_auth_level(RPC_C_AUTHN_LEVEL_PKT_PRIVACY)
+    elif arguments.rpc_authentication_level == 'integrity':
+        iwebem_services.get_dce_rpc().set_auth_level(RPC_C_AUTHN_LEVEL_PKT_INTEGRITY)
+    elif arguments.rpc_authentication_level == 'none':
+        iwebem_services.get_dce_rpc().set_auth_level(RPC_C_AUTHN_LEVEL_NONE)
+
+    iwebem_level_one_login.RemRelease()
+
+    query_response = []
+
+    try:
+        enum_response = iwebem_services.ExecQuery(query)
+    except impacket.dcerpc.v5.dcom.wmi.DCERPCSessionError as query_response_fail:
+        zbxwmi_logger.fatal("WMI Error: %(except)s", {'except': query_response_fail})
+        print(f"WMI Error: {query_response_fail}")
+        sys.exit(5)
+    while True:
+        try:
+            parent_enum = enum_response.Next(0xffffffff, 1)[0]
+        except impacket.dcerpc.v5.dcom.wmi.DCERPCSessionError as this_exception:
+            if str(this_exception).find('S_FALSE') == -1:
+                print(this_exception)
+                raise
+
+            break
+        properties_enum = parent_enum.getProperties()
+        temp = {}
+
+        for this_property in properties_enum:
+            if isinstance(properties_enum[this_property].get('value'), list):
+                temp[this_property] = []
+
+                for this_item in properties_enum[this_property].get('value'):
+                    temp[this_property].append(this_item)
+            else:
+                temp[this_property] = properties_enum[this_property].get('value')
+        query_response.append(temp)
+
+    iwebem_level_one_login.RemRelease()
+    dcom_conn.disconnect()
+
+    return query_response
+
+
+def send_single(this_response) -> None:
+    """
+    Simply print the first value of the dict in the list.
+    """
+    print(this_response[0].get(arguments.query_fields))
+
+
+def send_multiple(this_response) -> None:
+    """
+    Bulk insert data into Zabbix via zabbix_sender
+    """
+    if not arguments.zabbix_hostname:
+        zbxwmi_logger.error('Zabbix Hostname parameter was not provided.'\
+                ' Parameter can be provided using -zhost/--zabbix-hostname')
+        print('Zabbix Hostname parameter was not provided. Please enter it using'\
+                ' -zhost <Zabbix Hostname>')
+        sys.exit(6)
+    input_feed = ""
+
+    for this_json in this_response:
+        for this_key in this_json:
+            if this_key == arguments.key_field:
+                continue
+            input_feed += f'"{arguments.zabbix_hostname}"'\
+                    f' {this_key}[{this_json.get(arguments.key_field)}]'\
+                    f' "{this_json.get(this_key)}"\n'
+
+    try:
+        with open(os.devnull, 'w') as devnull:
+            with subprocess.Popen([arguments.zabbix_sender, '-z', arguments.zabbix_server,
+                '-r', '-i', '-'], stdin=subprocess.PIPE,
+                stdout=devnull, stderr=devnull) as call_info:
+                call_info.communicate(input_feed.encode('utf8'))
+    except FileNotFoundError as no_exec:
+        zbxwmi_logger.error('%(msg)s - Zabbix Sender was not found. Please manually provide'\
+                ' a valid path to zabbix_sender using -zsnd or --zabbix-sender parameter',
+                {'msg': no_exec})
+        print("Zabbix sender was not found.")
+        sys.exit(7)
+
+
+def send_json(this_response) -> None:
+    """
+    Print data to STDOUT as json
+    """
+    print(json.dumps(this_response))
+
+
+def send_discover(this_response) -> None:
+    """
+    Print JSON response in Zabbix LLD format.
+    """
+    zbxwmi_logger.info("Formatting data in Zabbix LLD style...")
+    output = []
+    for this_json in this_response:
+        temp = {}
+        for this_key in this_json:
+            wmi_key = f"{{#WMI.{this_key}}}".upper()
+            temp[wmi_key] = this_json.get(this_key)
+        output.append(temp)
+
+    print(json.dumps(output))
+    zbxwmi_logger.info("LLD data has now been printed to stdout.")
+
+
+my_query = build_query()
+response = wmi_query(my_query)
+
+action = arguments.action
+
+if action == ACTION_CHOICES[0]:
+    send_single(response)
+if action == ACTION_CHOICES[1]:
+    send_multiple(response)
+if action == ACTION_CHOICES[2]:
+    send_json(response)
+if action == ACTION_CHOICES[3]:
+    send_discover(response)
+if action == ACTION_CHOICES[4]:
+    send_discover(response)
+    send_multiple(response)
+
+sys.exit(0)

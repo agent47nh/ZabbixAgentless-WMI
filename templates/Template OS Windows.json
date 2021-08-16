@@ -1,0 +1,1085 @@
+{
+    "zabbix_export": {
+        "version": "5.2",
+        "date": "2021-08-15T07:28:37Z",
+        "groups": [
+            {
+                "name": "Templates/Operating Systems"
+            }
+        ],
+        "templates": [
+            {
+                "template": "Template WMI OS Windows",
+                "name": "Template WMI OS Windows",
+                "groups": [
+                    {
+                        "name": "Templates/Operating Systems"
+                    }
+                ],
+                "applications": [
+                    {
+                        "name": "CPU"
+                    },
+                    {
+                        "name": "Disks"
+                    },
+                    {
+                        "name": "Inventory"
+                    },
+                    {
+                        "name": "Memory"
+                    },
+                    {
+                        "name": "Network Cards"
+                    },
+                    {
+                        "name": "Services"
+                    },
+                    {
+                        "name": "System"
+                    }
+                ],
+                "items": [
+                    {
+                        "name": "Available Memory",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf, AvailableBytes, -c, Win32_PerfRawData_PerfOS_Memory, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                        "delay": "60",
+                        "history": "7d",
+                        "units": "B",
+                        "applications": [
+                            {
+                                "name": "Memory"
+                            }
+                        ],
+                        "triggers": [
+                            {
+                                "expression": "{last(0)}<100M",
+                                "name": "Lack of free memory on server {HOST.NAME}",
+                                "priority": "AVERAGE"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "OS Name",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf,Caption, -c, Win32_OperatingSystem, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                        "delay": "3600",
+                        "history": "7d",
+                        "trends": "0",
+                        "value_type": "CHAR",
+                        "inventory_link": "OS",
+                        "applications": [
+                            {
+                                "name": "Inventory"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Serial Number",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf,IdentifyingNumber, -c, Win32_ComputerSystemProduct, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                        "delay": "3600",
+                        "history": "7d",
+                        "trends": "0",
+                        "value_type": "CHAR",
+                        "inventory_link": "SERIALNO_A",
+                        "applications": [
+                            {
+                                "name": "Inventory"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Manufacturer",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf, Manufacturer, -c, Win32_ComputerSystem, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                        "delay": "3600",
+                        "history": "7d",
+                        "trends": "0",
+                        "value_type": "CHAR",
+                        "inventory_link": "VENDOR",
+                        "applications": [
+                            {
+                                "name": "Inventory"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Model",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf,Model, -c, Win32_ComputerSystem, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                        "delay": "3600",
+                        "history": "7d",
+                        "trends": "0",
+                        "value_type": "CHAR",
+                        "inventory_link": "MODEL",
+                        "applications": [
+                            {
+                                "name": "Inventory"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "System Name",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf,Name, -c, Win32_ComputerSystem, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                        "delay": "3600",
+                        "history": "7d",
+                        "trends": "0",
+                        "value_type": "CHAR",
+                        "inventory_link": "NAME",
+                        "applications": [
+                            {
+                                "name": "Inventory"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "CPU Name",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf,Name, -c, Win32_Processor, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                        "delay": "3600",
+                        "history": "7d",
+                        "trends": "0",
+                        "value_type": "CHAR",
+                        "inventory_link": "HARDWARE_FULL",
+                        "applications": [
+                            {
+                                "name": "Inventory"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Memory Pages Per sec",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf,PagesPersec, -c, Win32_PerfFormattedData_PerfOS_Memory, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                        "delay": "60",
+                        "history": "7d",
+                        "value_type": "FLOAT",
+                        "units": "/sec",
+                        "applications": [
+                            {
+                                "name": "Memory"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Memory Percent Committed Bytes In Use",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf,PercentCommittedBytesInUse, -c, Win32_PerfFormattedData_PerfOS_Memory, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                        "delay": "60",
+                        "history": "7d",
+                        "value_type": "FLOAT",
+                        "units": "%",
+                        "applications": [
+                            {
+                                "name": "Memory"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Processor % Idle Time",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf,PercentIdleTime, -c, Win32_PerfFormattedData_PerfOS_Processor, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -f,\"Name='_Total'\", -t, {HOST.CONN}]",
+                        "delay": "30",
+                        "history": "7d",
+                        "value_type": "FLOAT",
+                        "units": "%",
+                        "applications": [
+                            {
+                                "name": "CPU"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Processor % Processor Time",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf,PercentProcessorTime, -c, Win32_PerfFormattedData_PerfOS_Processor, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -f,\"Name='_Total'\", -t, {HOST.CONN}]",
+                        "delay": "30",
+                        "history": "7d",
+                        "value_type": "FLOAT",
+                        "units": "%",
+                        "applications": [
+                            {
+                                "name": "CPU"
+                            }
+                        ],
+                        "triggers": [
+                            {
+                                "expression": "{avg(600,0)}>80",
+                                "name": "% Total Processor Time",
+                                "priority": "WARNING"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Number of processes",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf,Processes, -c, Win32_PerfFormattedData_PerfOS_System, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                        "delay": "120",
+                        "history": "7d",
+                        "applications": [
+                            {
+                                "name": "System"
+                            }
+                        ],
+                        "triggers": [
+                            {
+                                "expression": "{avg(5m)}>500",
+                                "name": "Too many processes on {HOST.NAME}",
+                                "priority": "AVERAGE"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Processor Queue Length",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf,ProcessorQueueLength, -c, Win32_PerfFormattedData_PerfOS_System, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                        "delay": "30",
+                        "history": "7d",
+                        "value_type": "FLOAT",
+                        "applications": [
+                            {
+                                "name": "CPU"
+                            }
+                        ],
+                        "triggers": [
+                            {
+                                "expression": "{avg(600,0)}>10",
+                                "name": "Processor Queue Length",
+                                "priority": "WARNING"
+                            },
+                            {
+                                "expression": "{avg(600,0)}>20",
+                                "name": "Processor Queue Length",
+                                "priority": "HIGH"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Server Work Queues",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf,QueueLength, -c, Win32_PerfFormattedData_PerfNet_ServerWorkQueues, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                        "delay": "30",
+                        "history": "7d",
+                        "value_type": "FLOAT",
+                        "applications": [
+                            {
+                                "name": "CPU"
+                            }
+                        ],
+                        "triggers": [
+                            {
+                                "expression": "{avg(600,0)}>4",
+                                "name": "Server Work Queues",
+                                "priority": "WARNING"
+                            },
+                            {
+                                "expression": "{avg(600,0)}>7",
+                                "name": "Server Work Queues",
+                                "priority": "HIGH"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "System uptime",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf,SystemUpTime, -c, Win32_PerfFormattedData_PerfOS_System, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                        "delay": "60",
+                        "history": "7d",
+                        "units": "uptime",
+                        "applications": [
+                            {
+                                "name": "System"
+                            }
+                        ],
+                        "triggers": [
+                            {
+                                "expression": "{change(0)}<0",
+                                "name": "{HOST.NAME} has just been restarted",
+                                "priority": "AVERAGE"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Number of threads",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf,Threads, -c, Win32_PerfFormattedData_PerfOS_System, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                        "delay": "120",
+                        "history": "7d",
+                        "applications": [
+                            {
+                                "name": "System"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Total Memory",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, single, -qf,TotalPhysicalMemory, -c, Win32_ComputerSystem, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                        "delay": "60",
+                        "history": "7d",
+                        "units": "B",
+                        "applications": [
+                            {
+                                "name": "Memory"
+                            }
+                        ]
+                    }
+                ],
+                "discovery_rules": [
+                    {
+                        "name": "Disk Performance Discovery",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, discover_n_multiple, -qf, \"Name,AvgDiskReadQueueLength,AvgDiskWriteQueueLength,DiskReadBytesPersec,DiskReadsPersec,DiskWriteBytesPersec,DiskWritesPersec,FreeMegabytes,PercentFreeSpace,PercentDiskTime,PercentIdleTime\", -f, \"NOT Name LIKE '_Total' AND NOT Name LIKE 'HarddiskVo%'\", -c, Win32_PerfFormattedData_PerfDisk_LogicalDisk, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}, -zhost, {HOST.NAME}]",
+                        "delay": "60",
+                        "item_prototypes": [
+                            {
+                                "name": "Average disk read queue length {#WMI.NAME}",
+                                "type": "TRAP",
+                                "key": "AvgDiskReadQueueLength[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "7d",
+                                "value_type": "FLOAT",
+                                "applications": [
+                                    {
+                                        "name": "Disks"
+                                    }
+                                ],
+                                "application_prototypes": [
+                                    {
+                                        "name": "Performance"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "Average disk write queue length {#WMI.NAME}",
+                                "type": "TRAP",
+                                "key": "AvgDiskWriteQueueLength[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "7d",
+                                "value_type": "FLOAT",
+                                "applications": [
+                                    {
+                                        "name": "Disks"
+                                    }
+                                ],
+                                "application_prototypes": [
+                                    {
+                                        "name": "Performance"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "DiskReadBytesPersec {#WMI.NAME}",
+                                "type": "TRAP",
+                                "key": "DiskReadBytesPersec[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "7d",
+                                "units": "Bps",
+                                "applications": [
+                                    {
+                                        "name": "Disks"
+                                    }
+                                ],
+                                "application_prototypes": [
+                                    {
+                                        "name": "Performance"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "DiskReadsPersec {#WMI.NAME}",
+                                "type": "TRAP",
+                                "key": "DiskReadsPersec[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "7d",
+                                "units": "ops",
+                                "applications": [
+                                    {
+                                        "name": "Disks"
+                                    }
+                                ],
+                                "application_prototypes": [
+                                    {
+                                        "name": "Performance"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "DiskWriteBytesPersec {#WMI.NAME}",
+                                "type": "TRAP",
+                                "key": "DiskWriteBytesPersec[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "7d",
+                                "units": "Bps",
+                                "applications": [
+                                    {
+                                        "name": "Disks"
+                                    }
+                                ],
+                                "application_prototypes": [
+                                    {
+                                        "name": "Performance"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "DiskWritesPersec {#WMI.NAME}",
+                                "type": "TRAP",
+                                "key": "DiskWritesPersec[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "7d",
+                                "units": "ops",
+                                "applications": [
+                                    {
+                                        "name": "Disks"
+                                    }
+                                ],
+                                "application_prototypes": [
+                                    {
+                                        "name": "Performance"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "Free disk space on {#WMI.NAME} (Megabytes)",
+                                "type": "TRAP",
+                                "key": "FreeMegabytes[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "7d",
+                                "units": "B",
+                                "applications": [
+                                    {
+                                        "name": "Disks"
+                                    }
+                                ],
+                                "preprocessing": [
+                                    {
+                                        "type": "MULTIPLIER",
+                                        "parameters": [
+                                            "1048576"
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "Percent Disk Time  on {#WMI.NAME} (percentage)",
+                                "type": "TRAP",
+                                "key": "PercentDiskTime[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "7d",
+                                "value_type": "FLOAT",
+                                "units": "%",
+                                "applications": [
+                                    {
+                                        "name": "Disks"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "Free disk space on {#WMI.NAME} (percentage)",
+                                "type": "TRAP",
+                                "key": "PercentFreeSpace[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "7d",
+                                "value_type": "FLOAT",
+                                "units": "%",
+                                "applications": [
+                                    {
+                                        "name": "Disks"
+                                    }
+                                ],
+                                "trigger_prototypes": [
+                                    {
+                                        "expression": "{last(0)}<10",
+                                        "name": "Free disk space is less than 10% on volume {#WMI.NAME}",
+                                        "priority": "WARNING"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "Percent Idle Time on {#WMI.NAME} (percentage)",
+                                "type": "TRAP",
+                                "key": "PercentIdleTime[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "7d",
+                                "value_type": "FLOAT",
+                                "units": "%",
+                                "applications": [
+                                    {
+                                        "name": "Disks"
+                                    }
+                                ]
+                            }
+                        ],
+                        "graph_prototypes": [
+                            {
+                                "name": "Disk activity {#WMI.NAME}",
+                                "type": "STACKED",
+                                "ymin_type_1": "FIXED",
+                                "ymax_type_1": "FIXED",
+                                "graph_items": [
+                                    {
+                                        "color": "FF3333",
+                                        "item": {
+                                            "host": "Template WMI OS Windows",
+                                            "key": "PercentDiskTime[{#WMI.NAME}]"
+                                        }
+                                    },
+                                    {
+                                        "sortorder": "1",
+                                        "color": "00C800",
+                                        "item": {
+                                            "host": "Template WMI OS Windows",
+                                            "key": "PercentIdleTime[{#WMI.NAME}]"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "Disk performance {#WMI.NAME}",
+                                "graph_items": [
+                                    {
+                                        "color": "1A7C11",
+                                        "item": {
+                                            "host": "Template WMI OS Windows",
+                                            "key": "AvgDiskReadQueueLength[{#WMI.NAME}]"
+                                        }
+                                    },
+                                    {
+                                        "sortorder": "1",
+                                        "color": "6C59DC",
+                                        "item": {
+                                            "host": "Template WMI OS Windows",
+                                            "key": "AvgDiskWriteQueueLength[{#WMI.NAME}]"
+                                        }
+                                    },
+                                    {
+                                        "sortorder": "2",
+                                        "color": "AC8C14",
+                                        "item": {
+                                            "host": "Template WMI OS Windows",
+                                            "key": "DiskReadBytesPersec[{#WMI.NAME}]"
+                                        }
+                                    },
+                                    {
+                                        "sortorder": "3",
+                                        "color": "611F27",
+                                        "item": {
+                                            "host": "Template WMI OS Windows",
+                                            "key": "DiskReadsPersec[{#WMI.NAME}]"
+                                        }
+                                    },
+                                    {
+                                        "sortorder": "4",
+                                        "color": "F230E0",
+                                        "item": {
+                                            "host": "Template WMI OS Windows",
+                                            "key": "DiskWriteBytesPersec[{#WMI.NAME}]"
+                                        }
+                                    },
+                                    {
+                                        "sortorder": "5",
+                                        "color": "5CCD18",
+                                        "item": {
+                                            "host": "Template WMI OS Windows",
+                                            "key": "DiskWritesPersec[{#WMI.NAME}]"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Network Adapters Discovery",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, discover_n_multiple, -qf, \"Name,BytesRecievedPersec,BytesSentPersec,BytesTotalPersec\", -f, \"NOT Name LIKE 'isatap%' AND NOT Name LIKE 'Teredo%' AND NOT Name LIKE '%ISATAP%'\", -c, Win32_PerfFormattedData_Tcpip_NetworkInterface, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}, -zhost, {HOST.NAME}]",
+                        "delay": "60",
+                        "item_prototypes": [
+                            {
+                                "name": "BytesReceivedPersec {#WMI.NAME}",
+                                "type": "TRAP",
+                                "key": "BytesRecievedPersec[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "7d",
+                                "units": "Bps",
+                                "applications": [
+                                    {
+                                        "name": "Network Cards"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "BytesSentPersec {#WMI.NAME}",
+                                "type": "TRAP",
+                                "key": "BytesSentPersec[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "7d",
+                                "units": "Bps",
+                                "applications": [
+                                    {
+                                        "name": "Network Cards"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "BytesTotalPersec {#WMI.NAME}",
+                                "type": "TRAP",
+                                "key": "BytesTotalPersec[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "7d",
+                                "units": "Bps",
+                                "applications": [
+                                    {
+                                        "name": "Network Cards"
+                                    }
+                                ]
+                            }
+                        ],
+                        "graph_prototypes": [
+                            {
+                                "name": "Network usage {#WMI.NAME}",
+                                "type": "STACKED",
+                                "graph_items": [
+                                    {
+                                        "sortorder": "1",
+                                        "color": "1A7C11",
+                                        "item": {
+                                            "host": "Template WMI OS Windows",
+                                            "key": "BytesRecievedPersec[{#WMI.NAME}]"
+                                        }
+                                    },
+                                    {
+                                        "sortorder": "2",
+                                        "color": "F63100",
+                                        "item": {
+                                            "host": "Template WMI OS Windows",
+                                            "key": "BytesTotalPersec[{#WMI.NAME}]"
+                                        }
+                                    },
+                                    {
+                                        "sortorder": "3",
+                                        "color": "2774A4",
+                                        "item": {
+                                            "host": "Template WMI OS Windows",
+                                            "key": "BytesSentPersec[{#WMI.NAME}]"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Services Windows",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, discover_n_multiple, -qf, \"Name,DisplayName,Started,StartMode\", -c, Win32_Service, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}, -zhost, {HOST.NAME}]",
+                        "delay": "120",
+                        "filter": {
+                            "conditions": [
+                                {
+                                    "macro": "{#WMI.NAME}",
+                                    "formulaid": "A"
+                                }
+                            ]
+                        },
+                        "item_prototypes": [
+                            {
+                                "name": "Service {#WMI.NAME} Started",
+                                "type": "TRAP",
+                                "key": "Started[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "30d",
+                                "applications": [
+                                    {
+                                        "name": "Services"
+                                    }
+                                ],
+                                "valuemap": {
+                                    "name": "Service state"
+                                },
+                                "preprocessing": [
+                                    {
+                                        "type": "BOOL_TO_DECIMAL",
+                                        "parameters": [
+                                            ""
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "Service {#WMI.NAME} Start mode",
+                                "type": "TRAP",
+                                "key": "StartMode[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "30d",
+                                "trends": "0",
+                                "value_type": "CHAR",
+                                "applications": [
+                                    {
+                                        "name": "Services"
+                                    }
+                                ]
+                            }
+                        ],
+                        "trigger_prototypes": [
+                            {
+                                "expression": "{Template WMI OS Windows:Started[{#WMI.NAME}].last()}<>1 and {Template WMI OS Windows:StartMode[{#WMI.NAME}].str(Auto)}=1",
+                                "name": "Service {#WMI.NAME} ({#WMI.NAME}) is not started",
+                                "priority": "AVERAGE"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Disk Volumes Discovery",
+                        "type": "EXTERNAL",
+                        "key": "zabbix_wmi[-a, discover_n_multiple, -qf, \"Name,Size,FreeSpace\", -f, MediaType=12, -c, Win32_LogicalDisk, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}, -zhost, {HOST.NAME}]",
+                        "delay": "60",
+                        "item_prototypes": [
+                            {
+                                "name": "Free Space {#WMI.NAME}",
+                                "type": "TRAP",
+                                "key": "FreeSpace[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "7d",
+                                "units": "B",
+                                "applications": [
+                                    {
+                                        "name": "Disks"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "Size {#WMI.NAME}",
+                                "type": "TRAP",
+                                "key": "Size[{#WMI.NAME}]",
+                                "delay": "0",
+                                "history": "7d",
+                                "units": "B",
+                                "applications": [
+                                    {
+                                        "name": "Disks"
+                                    }
+                                ]
+                            }
+                        ],
+                        "graph_prototypes": [
+                            {
+                                "name": "Disk space usage {#WMI.NAME}",
+                                "width": "600",
+                                "height": "340",
+                                "yaxismax": "0",
+                                "show_work_period": "NO",
+                                "show_triggers": "NO",
+                                "type": "PIE",
+                                "show_3d": "YES",
+                                "graph_items": [
+                                    {
+                                        "color": "C80000",
+                                        "type": "GRAPH_SUM",
+                                        "item": {
+                                            "host": "Template WMI OS Windows",
+                                            "key": "Size[{#WMI.NAME}]"
+                                        }
+                                    },
+                                    {
+                                        "sortorder": "1",
+                                        "color": "00C800",
+                                        "item": {
+                                            "host": "Template WMI OS Windows",
+                                            "key": "FreeSpace[{#WMI.NAME}]"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "macros": [
+                    {
+                        "macro": "{$WMIC_DOMAIN}",
+                        "value": "mydomain.com"
+                    },
+                    {
+                        "macro": "{$WMIC_PASSWORD}",
+                        "value": "WMIPassword!@#123"
+                    },
+                    {
+                        "macro": "{$WMIC_USER}",
+                        "value": "WMIUser"
+                    }
+                ],
+                "dashboards": [
+                    {
+                        "name": "System performance",
+                        "widgets": [
+                            {
+                                "type": "GRAPH_CLASSIC",
+                                "width": "24",
+                                "height": "5",
+                                "fields": [
+                                    {
+                                        "type": "INTEGER",
+                                        "name": "source_type",
+                                        "value": "0"
+                                    },
+                                    {
+                                        "type": "GRAPH",
+                                        "name": "graphid",
+                                        "value": {
+                                            "name": "CPU Usage",
+                                            "host": "Template WMI OS Windows"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "GRAPH_CLASSIC",
+                                "y": "5",
+                                "width": "24",
+                                "height": "5",
+                                "fields": [
+                                    {
+                                        "type": "INTEGER",
+                                        "name": "source_type",
+                                        "value": "0"
+                                    },
+                                    {
+                                        "type": "GRAPH",
+                                        "name": "graphid",
+                                        "value": {
+                                            "name": "Memory Usage",
+                                            "host": "Template WMI OS Windows"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "GRAPH_CLASSIC",
+                                "y": "10",
+                                "width": "24",
+                                "height": "5",
+                                "fields": [
+                                    {
+                                        "type": "INTEGER",
+                                        "name": "source_type",
+                                        "value": "1"
+                                    },
+                                    {
+                                        "type": "ITEM",
+                                        "name": "itemid",
+                                        "value": {
+                                            "key": "zabbix_wmi[-a, single, -qf,Processes, -c, Win32_PerfFormattedData_PerfOS_System, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                                            "host": "Template WMI OS Windows"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "GRAPH_CLASSIC",
+                                "y": "15",
+                                "width": "24",
+                                "height": "5",
+                                "fields": [
+                                    {
+                                        "type": "INTEGER",
+                                        "name": "source_type",
+                                        "value": "1"
+                                    },
+                                    {
+                                        "type": "ITEM",
+                                        "name": "itemid",
+                                        "value": {
+                                            "key": "zabbix_wmi[-a, single, -qf,Threads, -c, Win32_PerfFormattedData_PerfOS_System, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]",
+                                            "host": "Template WMI OS Windows"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "GRAPH_PROTOTYPE",
+                                "y": "20",
+                                "width": "24",
+                                "height": "5",
+                                "fields": [
+                                    {
+                                        "type": "INTEGER",
+                                        "name": "columns",
+                                        "value": "1"
+                                    },
+                                    {
+                                        "type": "INTEGER",
+                                        "name": "rows",
+                                        "value": "1"
+                                    },
+                                    {
+                                        "type": "INTEGER",
+                                        "name": "source_type",
+                                        "value": "2"
+                                    },
+                                    {
+                                        "type": "GRAPH_PROTOTYPE",
+                                        "name": "graphid",
+                                        "value": {
+                                            "name": "Disk performance {#WMI.NAME}",
+                                            "host": "Template WMI OS Windows"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "GRAPH_PROTOTYPE",
+                                "y": "25",
+                                "width": "24",
+                                "height": "5",
+                                "fields": [
+                                    {
+                                        "type": "INTEGER",
+                                        "name": "columns",
+                                        "value": "1"
+                                    },
+                                    {
+                                        "type": "INTEGER",
+                                        "name": "rows",
+                                        "value": "1"
+                                    },
+                                    {
+                                        "type": "INTEGER",
+                                        "name": "source_type",
+                                        "value": "2"
+                                    },
+                                    {
+                                        "type": "GRAPH_PROTOTYPE",
+                                        "name": "graphid",
+                                        "value": {
+                                            "name": "Network usage {#WMI.NAME}",
+                                            "host": "Template WMI OS Windows"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "GRAPH_CLASSIC",
+                                "y": "30",
+                                "width": "24",
+                                "height": "5",
+                                "fields": [
+                                    {
+                                        "type": "INTEGER",
+                                        "name": "source_type",
+                                        "value": "0"
+                                    },
+                                    {
+                                        "type": "GRAPH",
+                                        "name": "graphid",
+                                        "value": {
+                                            "name": "Processor and Server Queues",
+                                            "host": "Template WMI OS Windows"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "graphs": [
+            {
+                "name": "CPU Usage",
+                "graph_items": [
+                    {
+                        "color": "00C8C8",
+                        "item": {
+                            "host": "Template WMI OS Windows",
+                            "key": "zabbix_wmi[-a, single, -qf,PercentIdleTime, -c, Win32_PerfFormattedData_PerfOS_Processor, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -f,\"Name='_Total'\", -t, {HOST.CONN}]"
+                        }
+                    },
+                    {
+                        "sortorder": "1",
+                        "item": {
+                            "host": "Template WMI OS Windows",
+                            "key": "zabbix_wmi[-a, single, -qf,PercentProcessorTime, -c, Win32_PerfFormattedData_PerfOS_Processor, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -f,\"Name='_Total'\", -t, {HOST.CONN}]"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Memory Performance",
+                "graph_items": [
+                    {
+                        "color": "1A7C11",
+                        "item": {
+                            "host": "Template WMI OS Windows",
+                            "key": "zabbix_wmi[-a, single, -qf,PagesPersec, -c, Win32_PerfFormattedData_PerfOS_Memory, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]"
+                        }
+                    },
+                    {
+                        "sortorder": "1",
+                        "color": "F63100",
+                        "yaxisside": "RIGHT",
+                        "item": {
+                            "host": "Template WMI OS Windows",
+                            "key": "zabbix_wmi[-a, single, -qf,PercentCommittedBytesInUse, -c, Win32_PerfFormattedData_PerfOS_Memory, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Memory Usage",
+                "ymin_type_1": "FIXED",
+                "ymax_type_1": "ITEM",
+                "ymax_item_1": {
+                    "host": "Template WMI OS Windows",
+                    "key": "zabbix_wmi[-a, single, -qf,TotalPhysicalMemory, -c, Win32_ComputerSystem, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]"
+                },
+                "graph_items": [
+                    {
+                        "drawtype": "GRADIENT_LINE",
+                        "color": "1A7C11",
+                        "item": {
+                            "host": "Template WMI OS Windows",
+                            "key": "zabbix_wmi[-a, single, -qf, AvailableBytes, -c, Win32_PerfRawData_PerfOS_Memory, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Processor and Server Queues",
+                "graph_items": [
+                    {
+                        "color": "00AAAA",
+                        "item": {
+                            "host": "Template WMI OS Windows",
+                            "key": "zabbix_wmi[-a, single, -qf,ProcessorQueueLength, -c, Win32_PerfFormattedData_PerfOS_System, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]"
+                        }
+                    },
+                    {
+                        "sortorder": "1",
+                        "color": "00C800",
+                        "item": {
+                            "host": "Template WMI OS Windows",
+                            "key": "zabbix_wmi[-a, single, -qf,QueueLength, -c, Win32_PerfFormattedData_PerfNet_ServerWorkQueues, -atype, userpass, -user, {$WMIC_USER}, -pass, {$WMIC_PASSWORD}, -dom, {$WMIC_DOMAIN}, -t, {HOST.CONN}]"
+                        }
+                    }
+                ]
+            }
+        ],
+        "value_maps": [
+            {
+                "name": "Service state",
+                "mappings": [
+                    {
+                        "value": "0",
+                        "newvalue": "Down"
+                    },
+                    {
+                        "value": "1",
+                        "newvalue": "Up"
+                    }
+                ]
+            }
+        ]
+    }
+}
