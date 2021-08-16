@@ -21,6 +21,7 @@
 - Step 2: Copy `'zabbix_wmi'` to the external scripts folder of the Zabbix server or proxy `(default location: /usr/lib/zabbix/externalscripts/)`.
 - Step 3: Import the template provided in the repository into your Zabbix system via frontend.
 - Step 4: Link the template to the agentless hosts.
+- Step 5: Change the these macros `WMIC_USER`, `WMIC_PASS`, and `WMIC_DOMAIN` in the host.
 
 Please note: If you are facing script timeout error, then increase the timeout to 30 seconds in your zabbix_server.conf or zabbix_proxy.conf
 
